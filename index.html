@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>别再盲目内耗了，测测你天生吃哪碗饭</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts 思源黑体与 Inter 保证中文排版清晰美观 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans SC"', '"Inter"', '-apple-system', 'BlinkMacSystemFont', '"PingFang SC"', '"Hiragino Sans GB"', '"Microsoft YaHei"', 'sans-serif'],
+                    },
+                    colors: {
+                        memo: {
+                            bg: '#F7F6F2',
+                            card: '#FFFFFF',
+                            ink: '#2C2A29',
+                            muted: '#7A7571',
+                            accent: '#3B3735'
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 30px -10px rgba(44, 42, 41, 0.06)',
+                        'card': '0 4px 20px rgba(44, 42, 41, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 基础样式与 iOS / Android 双端移动端交互优化 */
+        html, body {
+            background-color: #EFECE6;
+            color: #2C2A29;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            overscroll-behavior-y: none;
+            word-break: break-word;
+        }
+
+        /* 视图切换平滑过渡动画 */
+        .view-section {
+            display: none;
+            animation: fadeSlideUp 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .view-section.active {
+            display: flex;
+        }
+
+        @keyframes fadeSlideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 选项卡片点击反馈（兼容安卓触摸高亮与按压） */
+        .option-btn {
+            touch-action: manipulation;
+            transition: transform 0.16s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .option-btn:active {
+            transform: scale(0.985);
+        }
+
+        /* 3:4 备忘录结果卡片比例保障（兼容旧版安卓 WebView） */
+        .memo-poster-ratio {
+            aspect-ratio: 3 / 4;
+            min-height: 410px;
+        }
+
+        /* 全面屏底部安全区适配 */
+        .safe-bottom {
+            padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+        }
+
+        /* 自定义细滚动条 */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(44, 42, 41, 0.15);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen min-h-[100dvh] flex justify-center items-start sm:items-center sm:py-6 font-sans antialiased selection:bg-stone-200">
+
+    <!-- 移动端主容器：兼容 iOS Safari 与 Android 各类浏览器/微信 WebView -->
+    <main id="app-container" class="w-full max-w-[480px] min-h-screen min-h-[100dvh] sm:min-h-[820px] bg-[#F7F6F2] sm:rounded-[32px] sm:shadow-soft relative flex flex-col justify-between overflow-x-hidden">
+
+        <!-- 顶部轻量状态栏 -->
+        <header class="w-full px-4 min-[375px]:px-5 pt-4 pb-1 flex items-center justify-between text-xs text-[#7A7571]">
+            <span class="tracking-wider font-medium">天赋潜能实验室</span>
+            <span class="px-2.5 py-1 rounded-full bg-white/80 text-[#8C8681] border border-stone-200/60 text-[11px] whitespace-nowrap">
+                测完解锁全套职业档案
+            </span>
+        </header>
+
+        <!-- ================= 视图 1：开始页 ================= -->
+        <section id="view-landing" class="view-section active flex-1 flex-col justify-between px-4 min-[375px]:px-5 pt-2 safe-bottom">
+            <div class="flex-1 flex flex-col justify-center">
+                <!-- 备忘录风主卡片 -->
+                <div class="bg-white rounded-[26px] p-5 min-[375px]:p-6 sm:p-8 shadow-card border border-stone-200/50 relative overflow-hidden">
+                    <!-- 装饰性备忘录小圆点 -->
+                    <div class="flex items-center justify-between mb-4 min-[375px]:mb-5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#E8D5C4]"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#D9E2EC]"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#DCE8DF]"></span>
+                        </div>
+                        <span class="text-[11px] font-mono tracking-widest text-[#A8A29E]">NO.2026-TALENT</span>
+                    </div>
+
+                    <!-- 单行紧凑胶囊标签，兼容 360px 窄屏安卓与 iPhone -->
+                    <div class="inline-flex items-center px-2.5 min-[375px]:px-3 py-1 rounded-full bg-[#F7F6F2] text-[#7A7571] text-[11px] min-[375px]:text-[11.5px] font-medium mb-4 whitespace-nowrap">
+                        20道情景推演 · 约2分钟 · 10款天赋档案
+                    </div>
+
+                    <h1 class="text-[23px] min-[375px]:text-[25px] sm:text-[28px] font-bold leading-[1.35] tracking-tight text-[#2C2A29] mb-3.5">
+                        别再盲目内耗了，<br>测测你天生吃哪碗饭
+                    </h1>
+
+                    <p class="text-[14px] min-[375px]:text-[14.5px] leading-[1.68] text-[#6E6965] mb-5">
+                        有些痛苦不是你不够努力，只是站错了赛道。凭第一直觉选完20个日常切片，解锁最适合你的天命职业方向。
+                    </p>
+
+                    <!-- 神秘盲盒档案卡：完整展示不截断、不挤压折行 -->
+                    <div class="rounded-2xl bg-[#F7F6F2]/90 border border-dashed border-stone-300/90 p-3 min-[375px]:p-3.5 mb-6 flex items-center gap-2.5 min-[375px]:gap-3">
+                        <div class="w-10 h-10 min-[375px]:w-11 min-[375px]:h-11 rounded-xl bg-white shadow-xs border border-stone-100 flex items-center justify-center shrink-0 text-base font-bold text-[#2C2A29]">
+                            ？
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-1.5 mb-1">
+                                <span class="text-[12.5px] min-[375px]:text-[13px] font-bold text-[#2C2A29] whitespace-nowrap">你的天命职业档案</span>
+                                <span class="px-2 py-0.5 rounded-md bg-stone-200/80 text-[10px] font-medium text-[#57534E] whitespace-nowrap shrink-0">待解锁</span>
+                            </div>
+                            <p class="text-[11px] min-[375px]:text-[11.5px] leading-[1.45] text-[#7A7571]">
+                                核心天赋 · 避坑指南 · 高光赛道推荐
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 开始按钮 -->
+                    <button type="button" onclick="startQuiz()" style="touch-action: manipulation;" class="w-full py-3.5 rounded-2xl bg-[#2C2A29] hover:bg-[#3F3C3A] text-white font-semibold text-[15px] min-[375px]:text-[15.5px] tracking-wide shadow-sm transition transform active:scale-[0.98] flex items-center justify-center gap-2">
+                        <span>开启 20 题天赋潜能推演</span>
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 底部标语 -->
+            <footer class="pt-4 text-center">
+                <p class="text-[11px] text-[#A8A29E] tracking-widest">图个乐</p>
+            </footer>
+        </section>
+
+        <!-- ================= 视图 2：答题页 ================= -->
+        <section id="view-quiz" class="view-section flex-1 flex-col justify-between px-4 min-[375px]:px-5 pt-2 safe-bottom">
+            <div>
+                <!-- 进度条与题号 -->
+                <div class="mb-5">
+                    <div class="flex items-center justify-between text-xs font-medium text-[#7A7571] mb-2">
+                        <span id="question-counter" class="text-sm font-bold text-[#2C2A29]">1 / 20</span>
+                        <span id="progress-hint">别想太复杂，按真实反应选</span>
+                    </div>
+                    <div class="w-full h-2 bg-stone-200/70 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-[#2C2A29] rounded-full transition-all duration-300 ease-out" style="width: 5%;"></div>
+                    </div>
+                </div>
+
+                <!-- 题目卡片 -->
+                <div id="question-card" class="bg-white rounded-[24px] p-5 sm:p-7 shadow-card border border-stone-200/50 transition-opacity duration-200">
+                    <h2 id="question-text" class="text-[18px] sm:text-[20px] font-bold leading-[1.45] text-[#2C2A29] mb-5">
+                        <!-- 动态注入题干 -->
+                    </h2>
+
+                    <!-- 四个选项列表 -->
+                    <div id="options-container" class="space-y-2.5">
+                        <!-- 动态注入选项按钮 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部操作栏：上一题 + 标语 -->
+            <div class="pt-4 flex flex-col items-center gap-3">
+                <div class="w-full flex items-center justify-between min-h-[38px]">
+                    <button id="prev-btn" type="button" onclick="prevQuestion()" class="px-3.5 py-2 rounded-xl text-sm font-medium text-[#7A7571] hover:text-[#2C2A29] hover:bg-white/80 transition flex items-center gap-1.5 invisible">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+                        </svg>
+                        <span>上一题</span>
+                    </button>
+                    <span class="text-xs text-[#A8A29E]">选好自动跳下一题</span>
+                </div>
+                <p class="text-[11px] text-[#A8A29E] tracking-widest">图个乐</p>
+            </div>
+        </section>
+
+        <!-- ================= 视图 3：结果页 ================= -->
+        <section id="view-result" class="view-section flex-1 flex-col justify-between px-4 min-[375px]:px-5 pt-2 safe-bottom">
+            <div class="space-y-3.5">
+                <!-- 上半部分：3:4 纯色低饱和手机备忘录风结果海报卡 -->
+                <div id="result-memo-card" class="memo-poster-ratio w-full rounded-[26px] px-5 min-[375px]:px-6 py-6 min-[375px]:py-7 flex flex-col justify-between items-center text-center shadow-card transition-colors duration-300 relative overflow-hidden">
+                    
+                    <!-- 顶部：专属精致 SVG 职业意象插画框 -->
+                    <div class="w-full flex flex-col items-center pt-1">
+                        <div id="res-illustration-box" class="w-32 h-32 min-[375px]:w-36 min-[375px]:h-36 sm:w-40 sm:h-40 rounded-[30px] bg-white/85 backdrop-blur-xs shadow-sm border-2 border-white flex items-center justify-center overflow-hidden">
+                            <!-- 动态注入专属定制 SVG -->
+                        </div>
+                    </div>
+
+                    <!-- 中间：天命职业称号 + 灵魂判词 + 3个核心天赋标签 -->
+                    <div class="w-full my-auto flex flex-col items-center py-2">
+                        <h2 id="res-title" class="text-[22px] min-[375px]:text-[25px] sm:text-[28px] font-bold tracking-tight text-[#2C2A29] leading-tight mb-2.5">
+                            <!-- 结果名 -->
+                        </h2>
+
+                        <!-- 3个核心天赋标签 -->
+                        <div id="res-keywords" class="flex flex-wrap justify-center gap-1.5 mb-3.5">
+                            <!-- 动态注入标签 -->
+                        </div>
+
+                        <p id="res-verdict" class="text-[13.5px] min-[375px]:text-[14.5px] sm:text-[15px] leading-[1.62] text-[#44403C] font-medium max-w-[96%] mb-4">
+                            <!-- 一句话灵魂判词 -->
+                        </p>
+
+                        <!-- 极简分隔线与朋友圈金句 -->
+                        <div class="w-8 h-[1.5px] bg-[#2C2A29]/15 rounded-full mb-3.5"></div>
+
+                        <p id="res-quote" class="text-[12.5px] min-[375px]:text-[13.5px] sm:text-[14px] leading-[1.58] text-[#57534E] font-medium max-w-[94%]">
+                            <!-- 金句 -->
+                        </p>
+                    </div>
+
+                    <!-- 底部极小字：图个乐 -->
+                    <div class="w-full">
+                        <span class="text-[11px] text-[#2C2A29]/35 tracking-widest">图个乐</span>
+                    </div>
+                </div>
+
+                <!-- 下半部分：深度天赋推演报告三大模块（按「适合什么职业 ➔ 你的职场人格底色 ➔ 为什么天生吃这碗饭」逻辑重构） -->
+                <!-- 模块一：最适合你的天命职业方向（前置核心答案） -->
+                <div class="bg-white rounded-[24px] p-5 min-[375px]:p-6 shadow-card border border-stone-200/50 space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-1.5 h-3.5 rounded-full bg-[#2C2A29] shrink-0"></span>
+                            <h3 class="text-[14px] min-[375px]:text-[15px] font-bold text-[#2C2A29] whitespace-nowrap">01 · 你最适合的职业方向</h3>
+                        </div>
+                        <span class="text-[10.5px] min-[375px]:text-[11px] px-2 py-0.5 rounded-full bg-[#F7F6F2] text-[#7A7571] whitespace-nowrap shrink-0">天命赛道</span>
+                    </div>
+                    <div id="res-appearance-details" class="space-y-2.5 text-[13.5px] min-[375px]:text-[14px] leading-[1.78] text-[#4A4643]">
+                        <!-- 动态注入天命职业推荐、高光场景与避坑指南 -->
+                    </div>
+                </div>
+
+                <!-- 模块二：你的职场人格底色 -->
+                <div class="bg-white rounded-[24px] p-5 min-[375px]:p-6 shadow-card border border-stone-200/50 space-y-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-1.5 h-3.5 rounded-full bg-[#2C2A29] shrink-0"></span>
+                            <h3 class="text-[14px] min-[375px]:text-[15px] font-bold text-[#2C2A29] whitespace-nowrap">02 · 你的职场人格底色</h3>
+                        </div>
+                        <span class="text-[10.5px] min-[375px]:text-[11px] px-2 py-0.5 rounded-full bg-[#F7F6F2] text-[#7A7571] whitespace-nowrap shrink-0">核心特质</span>
+                    </div>
+                    <p id="res-self-analysis" class="text-[13.5px] min-[375px]:text-[14px] leading-[1.78] text-[#4A4643]">
+                        <!-- 动态注入测试者能量机制与工作习惯剖析 -->
+                    </p>
+                </div>
+
+                <!-- 模块三：为什么你天生适合这些职业 -->
+                <div class="bg-white rounded-[24px] p-5 min-[375px]:p-6 shadow-card border border-stone-200/50 space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-1.5 h-3.5 rounded-full bg-[#2C2A29] shrink-0"></span>
+                            <h3 class="text-[14px] min-[375px]:text-[15px] font-bold text-[#2C2A29] whitespace-nowrap">03 · 为什么天生吃这碗饭</h3>
+                        </div>
+                        <span class="text-[10.5px] min-[375px]:text-[11px] px-2 py-0.5 rounded-full bg-[#F7F6F2] text-[#7A7571] whitespace-nowrap shrink-0">契合原因</span>
+                    </div>
+                    <p id="res-match-logic" class="text-[13.5px] min-[375px]:text-[14px] leading-[1.78] text-[#4A4643]">
+                        <!-- 动态注入天赋与赛道契合原因 -->
+                    </p>
+
+                    <div class="pt-1.5">
+                        <p id="res-tag-prompt" class="text-[13px] min-[375px]:text-[13.5px] font-medium text-[#57534E] bg-[#F7F6F2] px-3.5 py-3 rounded-2xl leading-relaxed">
+                            <!-- @谁一起测 互动引导 -->
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 互动按钮组 -->
+                <div class="space-y-2.5 pt-1">
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" onclick="downloadResultImage()" style="touch-action: manipulation;" class="py-3.5 px-3 min-[375px]:px-4 rounded-2xl bg-[#2C2A29] hover:bg-[#3F3C3A] text-white text-[13.5px] min-[375px]:text-sm font-semibold shadow-sm transition active:scale-[0.98] flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                            </svg>
+                            <span>保存结果海报图</span>
+                        </button>
+
+                        <button type="button" onclick="copyResultText()" style="touch-action: manipulation;" class="py-3.5 px-3 min-[375px]:px-4 rounded-2xl bg-white hover:bg-stone-50 text-[#2C2A29] border border-stone-200/80 text-[13.5px] min-[375px]:text-sm font-semibold transition active:scale-[0.98] flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"/>
+                            </svg>
+                            <span>复制分析文案</span>
+                        </button>
+                    </div>
+
+                    <button type="button" onclick="restartQuiz()" style="touch-action: manipulation;" class="w-full py-3 rounded-2xl bg-transparent hover:bg-white/60 text-[#7A7571] hover:text-[#2C2A29] text-sm font-medium transition active:scale-[0.98]">
+                        重新测试
+                    </button>
+
+                    <!-- 测完才解锁的全部职业图鉴入口 -->
+                    <button type="button" onclick="openGalleryModal()" style="touch-action: manipulation;" class="w-full py-3.5 rounded-2xl bg-white/80 hover:bg-white text-[#57534E] border border-stone-200/70 text-sm font-medium transition active:scale-[0.98] flex items-center justify-center gap-1.5">
+                        <span>✨ 已解锁 · 查看全部 10 种天命职业图鉴</span>
+                    </button>
+                </div>
+            </div>
+
+            <footer class="pt-5 text-center">
+                <p class="text-[11px] text-[#A8A29E] tracking-widest">图个乐</p>
+            </footer>
+        </section>
+
+    </main>
+
+    <!-- ================= 10种职业图鉴弹窗 ================= -->
+    <div id="gallery-modal" class="fixed inset-0 z-40 hidden items-end sm:items-center justify-center bg-black/35 backdrop-blur-[2px] p-0 sm:p-4">
+        <div class="w-full max-w-[480px] max-h-[86vh] bg-[#F7F6F2] rounded-t-[28px] sm:rounded-[28px] flex flex-col overflow-hidden shadow-xl animate-[fadeSlideUp_0.25s_ease-out]">
+            <div class="px-6 py-4 bg-white border-b border-stone-200/60 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-[#2C2A29]">全部 10 种天命职业图鉴</h3>
+                    <p class="text-xs text-[#7A7571] mt-0.5">点击任意卡片可直接预览该结果页</p>
+                </div>
+                <button type="button" onclick="closeGalleryModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-[#57534E] transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="gallery-list" class="p-5 overflow-y-auto space-y-3">
+                <!-- 动态注入10个结果预览入口 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 导出图片预览弹窗（兼容微信/小红书长按保存） ================= -->
+    <div id="image-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-[2px] p-5">
+        <div class="w-full max-w-[360px] bg-white rounded-[26px] p-5 flex flex-col items-center text-center shadow-2xl">
+            <p class="text-sm font-bold text-[#2C2A29] mb-1">长按下方图片即可保存到相册</p>
+            <p class="text-xs text-[#7A7571] mb-3.5">3:4 比例，可直接发小红书或朋友圈</p>
+            <img id="exported-img-preview" src="" alt="天命职业结果图" class="w-full rounded-2xl shadow-sm border border-stone-100 mb-4">
+            <button type="button" onclick="closeImageModal()" class="w-full py-3 rounded-xl bg-[#2C2A29] text-white text-sm font-semibold active:scale-95 transition">
+                完成
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= 轻量提示气泡 (Toast) ================= -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-opacity duration-200">
+        <div id="toast-message" class="px-4 py-2.5 rounded-full bg-[#2C2A29]/90 text-white text-xs font-medium shadow-lg whitespace-nowrap">
+            提示信息
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 1. 专属定制高颜值小红书治愈手账风「职业天赋意象插画库」
+         */
+        const SVG_PORTRAITS = {
+            '天生创意造梦师': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-dream" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#F5F3FF"/>
+                            <stop offset="100%" stop-color="#E0D7FF"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-dream)"/>
+                    <circle cx="176" cy="64" r="28" fill="#FDE68A" opacity="0.65"/>
+                    <ellipse cx="120" cy="186" rx="58" ry="10" fill="#8B5CF6" opacity="0.22"/>
+                    <!-- 灵感调色盘与画笔 -->
+                    <path d="M74 128 C74 92, 166 92, 166 132 C166 158, 144 168, 128 164 C118 161, 118 148, 106 148 C90 148, 74 146, 74 128 Z" fill="#FFFDF9" stroke="#C4B5FD" stroke-width="2.5"/>
+                    <circle cx="102" cy="114" r="8" fill="#F472B6"/>
+                    <circle cx="126" cy="108" r="8" fill="#FBBF24"/>
+                    <circle cx="146" cy="120" r="8" fill="#34D399"/>
+                    <circle cx="142" cy="142" r="7" fill="#60A5FA"/>
+                    <circle cx="94" cy="134" r="6" fill="#DDD6FE"/>
+                    <!-- 魔法灵感画笔 -->
+                    <line x1="138" y1="158" x2="178" y2="96" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+                    <path d="M174 102 L186 84 C190 88, 188 98, 180 106 Z" fill="#F59E0B"/>
+                    <!-- 闪烁星芒 -->
+                    <polygon points="66,76 69,84 77,87 69,90 66,98 63,90 55,87 63,84" fill="#8B5CF6"/>
+                </svg>`,
+            '理性破局策略家': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-logic" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#EEF3F8"/>
+                            <stop offset="100%" stop-color="#D4E1EE"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-logic)"/>
+                    <ellipse cx="120" cy="186" rx="58" ry="10" fill="#64748B" opacity="0.25"/>
+                    <!-- 极简国际象棋皇后棋子与几何罗盘 -->
+                    <rect x="86" y="160" width="68" height="14" rx="6" fill="#334155"/>
+                    <path d="M96 160 L104 104 L136 104 L144 160 Z" fill="#475569"/>
+                    <ellipse cx="120" cy="104" rx="22" ry="6" fill="#1E293B"/>
+                    <circle cx="120" cy="84" r="14" fill="#334155"/>
+                    <circle cx="120" cy="66" r="5" fill="#3B82F6"/>
+                    <!-- 悬浮精密数据环 -->
+                    <circle cx="120" cy="122" r="64" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="6 6" fill="none"/>
+                    <circle cx="174" cy="88" r="8" fill="#3B82F6" opacity="0.8"/>
+                </svg>`,
+            '高能社交控场王': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-social" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFF4E6"/>
+                            <stop offset="100%" stop-color="#FFD8B8"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-social)"/>
+                    <ellipse cx="120" cy="186" rx="56" ry="10" fill="#EA580C" opacity="0.22"/>
+                    <!-- 复古聚光灯麦克风与声波 -->
+                    <rect x="102" y="76" width="36" height="58" rx="18" fill="#1E293B"/>
+                    <line x1="106" y1="94" x2="134" y2="94" stroke="#94A3B8" stroke-width="2.5"/>
+                    <line x1="106" y1="106" x2="134" y2="106" stroke="#94A3B8" stroke-width="2.5"/>
+                    <line x1="106" y1="118" x2="134" y2="118" stroke="#94A3B8" stroke-width="2.5"/>
+                    <path d="M92 114 C92 146, 148 146, 148 114" stroke="#F97316" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <line x1="120" y1="142" x2="120" y2="172" stroke="#1E293B" stroke-width="4"/>
+                    <rect x="98" y="170" width="44" height="8" rx="4" fill="#1E293B"/>
+                    <!-- 活力声波弧线 -->
+                    <path d="M74 92 Q66 105 74 118" stroke="#FB923C" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path d="M166 92 Q174 105 166 118" stroke="#FB923C" stroke-width="3" fill="none" stroke-linecap="round"/>
+                </svg>`,
+            '共情治愈摆渡人': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-heal" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#EEF7F1"/>
+                            <stop offset="100%" stop-color="#D2E8DA"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-heal)"/>
+                    <ellipse cx="120" cy="186" rx="56" ry="10" fill="#10B981" opacity="0.22"/>
+                    <!-- 暖光台灯与治愈绿植盆栽 -->
+                    <path d="M84 114 L102 74 L138 74 L156 114 Z" fill="#FDE68A" stroke="#F59E0B" stroke-width="2"/>
+                    <line x1="120" y1="114" x2="120" y2="168" stroke="#92400E" stroke-width="4"/>
+                    <rect x="96" y="166" width="48" height="10" rx="5" fill="#92400E"/>
+                    <!-- 柔和光晕 -->
+                    <polygon points="84,114 156,114 174,174 66,174" fill="#FEF3C7" opacity="0.45"/>
+                    <!-- 爱心小芽 -->
+                    <path d="M158 144 C158 134, 174 134, 174 146 C174 156, 158 164, 158 164 C158 164, 142 156, 142 146 C142 134, 158 134, 158 144 Z" fill="#34D399"/>
+                </svg>`,
+            '自由跨界探索家': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-explore" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFFBEB"/>
+                            <stop offset="100%" stop-color="#FDE68A"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-explore)"/>
+                    <ellipse cx="120" cy="186" rx="56" ry="10" fill="#D97706" opacity="0.24"/>
+                    <!-- 复古胶片相机与登机牌意象 -->
+                    <rect x="68" y="96" width="104" height="72" rx="14" fill="#1E293B"/>
+                    <rect x="68" y="112" width="104" height="38" fill="#F8FAFC"/>
+                    <rect x="86" y="84" width="32" height="14" rx="4" fill="#334155"/>
+                    <circle cx="120" cy="131" r="24" fill="#334155" stroke="#94A3B8" stroke-width="3"/>
+                    <circle cx="120" cy="131" r="14" fill="#0EA5E9"/>
+                    <circle cx="115" cy="126" r="4" fill="#FFFFFF" opacity="0.7"/>
+                    <rect x="148" y="102" width="14" height="8" rx="2" fill="#F59E0B"/>
+                    <!-- 小纸飞机 -->
+                    <path d="M158 64 L190 54 L174 82 L168 70 Z" fill="#3B82F6"/>
+                </svg>`,
+            '精微美学匠人派': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-craft" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FAF4EE"/>
+                            <stop offset="100%" stop-color="#EBD9C8"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-craft)"/>
+                    <ellipse cx="120" cy="186" rx="56" ry="10" fill="#A16207" opacity="0.22"/>
+                    <!-- 黄金比例标尺与手冲咖啡壶/匠心器物 -->
+                    <rect x="74" y="82" width="92" height="88" rx="12" fill="#FFFDF9" stroke="#D6C2B0" stroke-width="2.5"/>
+                    <!-- 黄金分割网格线 -->
+                    <line x1="130" y1="82" x2="130" y2="170" stroke="#E7D8C9" stroke-width="2"/>
+                    <line x1="74" y1="136" x2="166" y2="136" stroke="#E7D8C9" stroke-width="2"/>
+                    <path d="M74 170 A56 56 0 0 1 130 114" stroke="#B45309" stroke-width="2.5" fill="none"/>
+                    <!-- 精致钢笔尖 -->
+                    <path d="M138 118 L164 92 L174 102 L148 128 L132 134 Z" fill="#92400E"/>
+                    <circle cx="152" cy="114" r="3" fill="#FDE68A"/>
+                </svg>`,
+            '敏锐商业操盘手': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-biz" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#F6EEF2"/>
+                            <stop offset="100%" stop-color="#E6D5DF"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-biz)"/>
+                    <ellipse cx="120" cy="186" rx="56" ry="10" fill="#9D174D" opacity="0.2"/>
+                    <!-- 跃升阶梯与金色奖杯/火箭箭头 -->
+                    <rect x="74" y="144" width="24" height="30" rx="6" fill="#CBD5E1"/>
+                    <rect x="108" y="122" width="24" height="52" rx="6" fill="#94A3B8"/>
+                    <rect x="142" y="96" width="24" height="78" rx="6" fill="#881337"/>
+                    <!-- 增长破局折线 -->
+                    <path d="M76 130 L114 106 L142 112 L172 72" stroke="#F59E0B" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <polygon points="176,66 160,70 172,84" fill="#F59E0B"/>
+                </svg>`,
+            '硬核技术极客魂': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-tech" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ECF2F5"/>
+                            <stop offset="100%" stop-color="#D2E1E8"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-tech)"/>
+                    <ellipse cx="120" cy="186" rx="58" ry="10" fill="#0F766E" opacity="0.22"/>
+                    <!-- 极简代码终端与机械键盘键帽 -->
+                    <rect x="64" y="82" width="112" height="84" rx="14" fill="#1E293B"/>
+                    <circle cx="80" cy="96" r="3.5" fill="#F87171"/>
+                    <circle cx="92" cy="96" r="3.5" fill="#FBBF24"/>
+                    <circle cx="104" cy="96" r="3.5" fill="#34D399"/>
+                    <!-- 代码符号 </> -->
+                    <path d="M98 118 L84 130 L98 142" stroke="#38BDF8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <path d="M142 118 L156 130 L142 142" stroke="#38BDF8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <line x1="126" y1="114" x2="114" y2="146" stroke="#34D399" stroke-width="4" stroke-linecap="round"/>
+                </svg>`,
+            '稳健秩序守护者': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-order" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ECEEF2"/>
+                            <stop offset="100%" stop-color="#D5DAE3"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-order)"/>
+                    <ellipse cx="120" cy="186" rx="56" ry="10" fill="#475569" opacity="0.24"/>
+                    <!-- 精装手账本与打勾清单 -->
+                    <rect x="76" y="74" width="88" height="102" rx="12" fill="#FFFFFF" stroke="#94A3B8" stroke-width="2.5"/>
+                    <rect x="76" y="74" width="18" height="102" rx="6" fill="#334155"/>
+                    <!-- 三条完成对勾 -->
+                    <path d="M106 102 L112 108 L122 96" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <line x1="130" y1="103" x2="150" y2="103" stroke="#94A3B8" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M106 126 L112 132 L122 120" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <line x1="130" y1="127" x2="150" y2="127" stroke="#94A3B8" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M106 150 L112 156 L122 144" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <line x1="130" y1="151" x2="150" y2="151" stroke="#94A3B8" stroke-width="3" stroke-linecap="round"/>
+                </svg>`,
+            '内容爆款制造机': `
+                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="bg-viral" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFF0ED"/>
+                            <stop offset="100%" stop-color="#FAD4CC"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="240" height="240" fill="url(#bg-viral)"/>
+                    <ellipse cx="120" cy="186" rx="56" ry="10" fill="#E11D48" opacity="0.22"/>
+                    <!-- 流量点赞爱心气泡与打字机卡片 -->
+                    <rect x="74" y="92" width="92" height="76" rx="16" fill="#FFFFFF" stroke="#FDA4AF" stroke-width="2.5"/>
+                    <path d="M120 116 C120 106, 136 106, 136 118 C136 128, 120 138, 120 138 C120 138, 104 128, 104 118 C104 106, 120 106, 120 116 Z" fill="#F43F5E"/>
+                    <rect x="94" y="148" width="52" height="6" rx="3" fill="#FECDD3"/>
+                    <!-- 顶部小红点消息角标 -->
+                    <circle cx="164" cy="92" r="14" fill="#F43F5E"/>
+                    <text x="164" y="97" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="bold">99+</text>
+                </svg>`
+        };
+
+        /**
+         * 2. 核心数据配置：10种天命职业天赋档案与深度推演报告
+         */
+        const RESULTS_DATA = {
+            '天生创意造梦师': {
+                name: '天生创意造梦师',
+                bgColor: '#F2EEFA',
+                keywords: ['脑洞破局', '审美在线', '拒绝流水线'],
+                verdict: '把天马行空的想象力变成现实，你天生不适合待在按部就班的格子间里。',
+                quote: '别人眼里不切实际的脑洞，恰恰是你用来惊艳全场的王牌。',
+                selfAnalysis: '你的大脑就像一台24小时运转的灵感放映机，对千篇一律的模板和死板的KPI有着天然的排斥。你对色彩、故事、氛围和新鲜事物极其敏感，只要处在被允许自由发挥的环境里，你的创造力就会呈指数级爆发；反之，重复性的机械劳动会迅速吸干你的能量。',
+                matchLogic: '「天生创意造梦师」赛道最珍视的就是你身上那股不按常理出牌的灵气。在人工智能可以批量生成标准答案的时代，唯有你脑子里那些鲜活、独特、带有个人温度的创意无法被替代。只要把你的想象力对接到视觉、策划或品牌表达上，你就能轻松做出让人眼前一亮的作品。',
+                appearanceDetails: [
+                    '天命赛道推荐：品牌创意策划、视觉/UI设计师、广告导演、新媒体创意主理人、游戏世界观架构师。',
+                    '职场高光场景：当团队对着空白方案一筹莫展时，你随口抛出的一个反套路点子瞬间点燃全场，成为整场提案的灵魂。',
+                    '避坑指南：千万别去考死记硬背的枯燥文职，也尽量避开事无巨细卡考勤的传统大厂流水线岗位。'
+                ],
+                tagPrompt: '@你身边那个脑洞大到外太空的朋友，快测测ta天生吃哪碗饭。'
+            },
+            '理性破局策略家': {
+                name: '理性破局策略家',
+                bgColor: '#EBF0F5',
+                keywords: ['逻辑鬼才', '一眼看穿本质', '冷静操盘'],
+                verdict: '在所有人情绪上头时保持绝对清醒，你天生适合站在棋盘上方做决策。',
+                quote: '复杂的表象迷惑得了别人，却逃不过你冷静拆解的目光。',
+                selfAnalysis: '你拥有极强的底层逻辑推演能力和信息整合力，遇到问题从不习惯抱怨，而是本能地去寻找「症结在哪、最优解是什么」。你讨厌低效的无效沟通和情绪化内耗，更享受通过深度思考把一团乱麻梳理得井井有条的掌控感。',
+                matchLogic: '「理性破局策略家」需要极高的抗干扰能力与系统思维，这正是你的核心天赋所在。你不需要靠讨好任何人来换取认可，你的专业判断与前瞻眼光本身就是最硬的通货。越是复杂、高难度的商业或研究课题，越能激发你骨子里的胜负欲与高光状态。',
+                appearanceDetails: [
+                    '天命赛道推荐：战略咨询顾问、商业数据分析师、行业研究员、金融投资分析、复杂系统产品经理。',
+                    '职场高光场景：项目陷入僵局、各方争执不下时，你用三张逻辑图理清利弊与破局路径，一锤定音扭转局面。',
+                    '避坑指南：远离全靠人情世故应酬、没有清晰晋升逻辑的传统关系型行业，那会让你觉得极其窒息。'
+                ],
+                tagPrompt: '@你身边那个每次分析问题都一针见血的学霸朋友，拉ta来测测。'
+            },
+            '高能社交控场王': {
+                name: '高能社交控场王',
+                bgColor: '#FAF0E6',
+                keywords: ['自带光环', '情绪感染力', '资源连接器'],
+                verdict: '只要有你在场就绝不会冷场，你的人脉与感染力就是最强的变现引擎。',
+                quote: '别人靠单打独斗熬资历，你靠一张嘴和人格魅力就能撬动整片资源。',
+                selfAnalysis: '你属于典型的「人群充电型」人格，越是热闹、充满互动的场合，你的状态就越兴奋。你极擅长察言观色，总能在几分钟内破冰拉近距离，把不同背景的人自然地撮合到一起。让你一个人对着电脑敲代码或写报表简直是酷刑，与人打交道才是你的能量源泉。',
+                matchLogic: '「高能社交控场王」把沟通共情和现场应变发挥到极致，而你天生就具备让陌生人信任你的亲和力与气场。在这个信息过载的时代，能把复杂的事情讲得生动有趣、能把不同利益方拧成一股绳的人，永远是各大公司抢着要的稀缺灵魂人物。',
+                appearanceDetails: [
+                    '天命赛道推荐：公关媒介总监、大客户商务BD、活动策划主理人、直播带货主播、培训讲师/主持人。',
+                    '职场高光场景：在重要商务晚宴或大型发布会上，你游刃有余地串联全场气氛，轻松拿下别人跟进半年的关键合作。',
+                    '避坑指南：避开需要长期独自闭关、缺乏外部正反馈的纯幕后执行岗，否则你会迅速丧失工作热情。'
+                ],
+                tagPrompt: '@那个走哪都能跟人聊成好朋友的「社牛天花板」，快发给ta测测。'
+            },
+            '共情治愈摆渡人': {
+                name: '共情治愈摆渡人',
+                bgColor: '#EAF4EE',
+                keywords: ['温柔力量', '深度倾听', '信任磁场'],
+                verdict: '用细腻的共情力接住每一份脆弱，你存在的本身就是一种治愈。',
+                quote: '真正的专业不是居高临下的说教，而是让人觉得「被你懂了」。',
+                selfAnalysis: '你拥有远超常人的情绪感知力，别人没说出口的委屈、纠结与期待，你往往一眼就能看穿。你做事情看重意义感与人与人之间的真实联结，冷冰冰的纯金钱博弈很难打动你，唯有看到自己的付出真正帮到了别人、让某个人变好，你才会获得深层的满足。',
+                matchLogic: '随着现代人精神压力越来越大，「共情治愈摆渡人」相关的专业领域正在迎来黄金时代。你温和不带评判的倾听姿态，能让人在短时间内放下防御、敞开心扉。这种把温柔转化为专业助人能力的天赋，会让你在岁月的沉淀中越老越吃香。',
+                appearanceDetails: [
+                    '天命赛道推荐：心理咨询师、人力资源BP/人才发展、教育规划导师、用户体验研究员、疗愈空间主理人。',
+                    '职场高光场景：当团队核心成员陷入职业迷茫想要离职时，你一次走心的深度长谈帮对方理清方向，重燃斗志。',
+                    '避坑指南：慎入冷血淘汰制、过度鼓吹狼性竞争的电销或高强度催收行业，你的高敏感会让你严重内耗。'
+                ],
+                tagPrompt: '@你身边那个每次找ta聊天都觉得被治愈的宝藏朋友，测测看。'
+            },
+            '自由跨界探索家': {
+                name: '自由跨界探索家',
+                bgColor: '#FBF5DE',
+                keywords: ['多面斜杠', '好奇心满格', '不设边界'],
+                verdict: '世界这么大，你天生不该被单一工种定义，跨界组合才是你的终极形态。',
+                quote: '别人怕变化，你却在每一次全新的尝试里活得热气腾腾。',
+                selfAnalysis: '你对世界保持着永不枯竭的好奇心，学习新东西上手极快，但同时也有点「三分钟热度」——一旦某件事变成毫无新意的日常重复，你就会立刻失去兴趣。你痛恨被困在单一坐标里，渴望拥有掌控自己时间和地理位置的自由度。',
+                matchLogic: '传统单一职业只会限制你的发挥，唯有「自由跨界探索家」能把你的多面兴趣串联成独特的个人IP。你擅长把A领域的经验搬到B领域降维打击，这种复合型视野在如今的自由职业与数字游民浪潮中极具竞争力，越折腾越能找到属于你的蓝海。',
+                appearanceDetails: [
+                    '天命赛道推荐：旅行/生活方式博主、独立买手、数字游民自由职业者、跨界项目制作人、小众买手店/民宿主理人。',
+                    '职场高光场景：别人还在按部就班打工时，你已经把摄影、探店和社群运营玩成了闭环，一边看世界一边把钱赚了。',
+                    '避坑指南：千万别签那种一眼望到头、每天打卡坐班十小时的死板合同，自由呼吸的空气才是你的生产力。'
+                ],
+                tagPrompt: '@那个总想辞职去看世界、点子多到爆的斜杠朋友，快拉ta来测。'
+            },
+            '精微美学匠人派': {
+                name: '精微美学匠人派',
+                bgColor: '#F6EFE6',
+                keywords: ['细节强迫症', '极致质感', '沉心打磨'],
+                verdict: '把一件事做到99分和100分的差距，就是你用来惊艳世人的护城河。',
+                quote: '快餐时代人人都在赶进度，唯有你愿意为毫米级的质感驻足。',
+                selfAnalysis: '你是一个对品质和细节有着近乎执着追求的人，粗糙、敷衍的半成品会让你浑身难受。你享受一个人沉浸在专注状态里的心流时刻，不喜欢被频繁打断，更愿意花时间把手头的作品反复打磨到无可挑剔。',
+                matchLogic: '浮躁的市场环境里，最稀缺的就是能沉下心来做精微打磨的「匠人派」。你的审美标准和严谨度本身就是一块金字招牌，不需要靠大声吆喝来证明自己，你交出的每一份作品都会替你说话，并为你吸引来真正懂行的高净值客户。',
+                appearanceDetails: [
+                    '天命赛道推荐：独立摄影师/修图师、精品咖啡/甜品主理人、工业/家居设计师、珠宝首饰设计、剪辑调色师。',
+                    '职场高光场景：在所有人都觉得「差不多就行了」的时候，你悄悄优化了最后5%的细节，让成品直接斩获行业大奖。',
+                    '避坑指南：远离只追求「日产百篇、粗制滥造」的流量垃圾场，那是对你审美与天赋的最大消耗。'
+                ],
+                tagPrompt: '@你身边那个对审美和细节要求极高的完美主义朋友，测测看。'
+            },
+            '敏锐商业操盘手': {
+                name: '敏锐商业操盘手',
+                bgColor: '#F4EAEF',
+                keywords: ['嗅觉敏锐', '结果导向', '搞钱天赋'],
+                verdict: '眼里看得见风口，手里算得清账目，你天生就流淌着商业变现的血液。',
+                quote: '别人刷手机看到的是热闹，你看到的却是背后的流量密码与商业闭环。',
+                selfAnalysis: '你是一个极度务实、目标感极强的人，做任何事情都会下意识评估「投入产出比」。你对市场趋势、人性需求和供需变化有着天生的敏锐嗅觉，不满足于只拿一份死工资，内心深处渴望掌控资源、主导一场从0到1的商业战役。',
+                matchLogic: '「敏锐商业操盘手」最看重的就是把想法转化为真金白银的落地能力。你既有敢于下注的魄力，又有精细化运营的算力，天生适合站在离钱最近的地方。只要给你一个支点，你就能迅速整合人脉与供应链，跑通属于自己的赚钱模型。',
+                appearanceDetails: [
+                    '天命赛道推荐：电商操盘手、品牌创始人/合伙人、增长黑客（Growth）、商业地产/招商总监、MCN机构创始人。',
+                    '职场高光场景：在新产品冷启动阶段，你精准捕捉到小众痛点并调整定价策略，单月业绩直接翻了三倍。',
+                    '避坑指南：避开论资排辈、干多干少一个样的平均主义岗位，你需要的是上不封顶的业绩提成与股权激励。'
+                ],
+                tagPrompt: '@你身边那个整天琢磨搞钱、商业嗅觉超敏锐的朋友，快来测测。'
+            },
+            '硬核技术极客魂': {
+                name: '硬核技术极客魂',
+                bgColor: '#EAF1F4',
+                keywords: ['深度专注', '硬核壁垒', '靠实力说话'],
+                verdict: '不屑于玩虚头巴脑的职场政治，你用硬核专业壁垒打造出不可替代的底气。',
+                quote: '世界越喧嚣，手握核心技术的人越拥有说「不」的绝对自由。',
+                selfAnalysis: '你喜欢跟确定性高的事物打交道，比起揣摩人心，你更享受攻克技术难题、搭建精密系统带来的纯粹成就感。你有着极强的钻研精神，一旦进入心流状态就能旁若无人地深耕数小时，用实打实的专业能力说话。',
+                matchLogic: '「硬核技术极客魂」是所有赛道里抗风险能力最强的存在。在这个技术飞速迭代的时代，你对底层原理的执着和快速学习前沿工具的能力，会为你筑起一道极高的职业护城河，让你无论走到哪里都能凭真本事赢得最高尊重。',
+                appearanceDetails: [
+                    '天命赛道推荐：AI应用开发工程师、全栈架构师、硬件研发工程师、网络安全专家、硬核科技产品专家。',
+                    '职场高光场景：系统突发核心故障全员慌乱时，你敲下几行指令精准定位根源并瞬间修复，成为全场救世主。',
+                    '避坑指南：尽量远离需要大量无效开会、靠写PPT汇报刷存在感的管理协调岗，把精力留给真正的创造。'
+                ],
+                tagPrompt: '@你身边那个技术超牛、专治各种疑难杂症的宝藏大神，拉ta来测。'
+            },
+            '稳健秩序守护者': {
+                name: '稳健秩序守护者',
+                bgColor: '#ECEEF2',
+                keywords: ['靠谱天花板', '精密统筹', '风险控制'],
+                verdict: '有你在的地方就没有掉链子的事，你是所有大型项目最不可或缺的定海神针。',
+                quote: '天才负责天马行空，而你负责把所有梦想稳稳地落地成现实。',
+                selfAnalysis: '你做事极有条理与边界感，习惯未雨绸缪，看到混乱无序的局面就忍不住想要出手理顺。你重承诺、守规矩，对细节和确定性有着极高的敏感度，内心深处不喜欢靠运气赌博，更相信「提前规划、步步为营」的力量。这种「凡事有交代、件件有着落」的靠谱底色，让你在任何人群里都是最让人放心托付的存在。',
+                matchLogic: '再宏大的商业蓝图，没有「稳健秩序守护者」的精密统筹都会变成空中楼阁。你的核心竞争力在于能把复杂繁琐的目标拆解成清晰的执行节点，并在风险爆发前提前筑好防火墙。越是体量庞大、容错率低的核心枢纽岗位，越需要你这样稳如泰山的掌舵人——别人越慌乱，你的专业与沉稳就越值钱。',
+                appearanceDetails: [
+                    '最适合的职业：高级项目经理（PMO）、法务合规与风控专家、财务内控总监、供应链与运营统筹官、大型活动总制片、核心政务与机构管理岗。',
+                    '职场高光场景：面对上百人的跨部门大型项目，你用一张进度表把时间节点、预算和人员卡得严丝合缝，零失误完美收官。',
+                    '职场避坑指南：远离朝令夕改、没有任何规则章法可言的草台班子，混乱的试错环境会让你每天都处于高压焦虑中。'
+                ],
+                tagPrompt: '@团队里那个最靠谱、每次团建和项目全靠ta兜底的朋友，快来测。'
+            },
+            '内容爆款制造机': {
+                name: '内容爆款制造机',
+                bgColor: '#F9EAE6',
+                keywords: ['网感爆棚', '情绪共鸣', '表达天赋'],
+                verdict: '精准踩中大众的情绪开关，你随手写下的一句话就能掀起全网转发狂潮。',
+                quote: '在这个注意力稀缺的时代，懂得用内容连接人心的人永远自带印钞机。',
+                selfAnalysis: '你拥有极强的表达欲和语言感受力，无论是写文字、拍视频还是讲段子，你总能用最接地气、最有画面感的方式把道理讲透。你对热点风向和大众心理有着天生的「网感」，一眼就能看出什么内容会火、什么痛点最戳人心。',
+                matchLogic: '「内容爆款制造机」是自媒体与新消费时代最吃香的超级能力。你不需要昂贵的启动资金，一部手机、一支笔就能成为你放大个人影响力的杠杆。只要找准垂直领域持续输出，你的内容资产就会像滚雪球一样为你带来源源不断的机遇。',
+                appearanceDetails: [
+                    '天命赛道推荐：自媒体内容创作者、爆款文案策划、短视频编导、播客主理人、新消费品牌内容操盘手。',
+                    '职场高光场景：你熬夜打磨的一篇推文或一条短视频发布后，点赞转发一路飙升破十万，直接带火整个品牌。',
+                    '避坑指南：避开条条框框过多、连标点符号都要层层审批的僵化宣传岗，自由表达的土壤才能长出爆款。'
+                ],
+                tagPrompt: '@你身边那个发朋友圈文案永远最绝、网感超好的朋友，测测看。'
+            }
+        };
+
+        /**
+         * 3. 20道原创职场与生活潜意识情景题（80个选项均匀映射到10种职业天赋，每种严格出现8次！）
+         */
+        const QUESTIONS_DATA = [
+            {
+                id: 1,
+                question: '周末突然多出一整天完全自由的时间，我最想怎么支配',
+                options: [
+                    { key: 'A', text: '逛展、看电影或者随手画点东西，给大脑充点新鲜灵感', target: '天生创意造梦师' },
+                    { key: 'B', text: '整理房间和下周待办清单，把所有东西归位才觉得踏实', target: '稳健秩序守护者' },
+                    { key: 'C', text: '约三五好友聚餐桌游，人多热闹聊起天来才够痛快', target: '高能社交控场王' },
+                    { key: 'D', text: '说走就走去周边没去过的小镇晃悠，顺便拍拍照片', target: '自由跨界探索家' }
+                ]
+            },
+            {
+                id: 2,
+                question: '刷短视频或看公众号时，什么内容最容易让我忍不住点赞收藏',
+                options: [
+                    { key: 'A', text: '把复杂商业逻辑或行业内幕拆解得清清楚楚的深度分析', target: '理性破局策略家' },
+                    { key: 'B', text: '文案极其戳心、让人看完直呼「这不就是我吗」的共鸣帖', target: '内容爆款制造机' },
+                    { key: 'C', text: '极简高级的家居改造、手作器物或神仙构图摄影作品', target: '精微美学匠人派' },
+                    { key: 'D', text: '普通人靠小成本副业逆袭、把冷门生意做起来的搞钱故事', target: '敏锐商业操盘手' }
+                ]
+            },
+            {
+                id: 3,
+                question: '朋友遇到感情或工作难题找我倾诉，我通常会怎么反应',
+                options: [
+                    { key: 'A', text: '先安静听完，用温柔的话接住ta的情绪，让ta知道我在', target: '共情治愈摆渡人' },
+                    { key: 'B', text: '帮ta冷静分析利弊，直接列出第一步、第二步该怎么做', target: '理性破局策略家' },
+                    { key: 'C', text: '拉ta出去吃顿好的换个心情，顺便帮ta介绍靠谱资源', target: '高能社交控场王' },
+                    { key: 'D', text: '脑洞大开帮ta想一个反套路破局法，逗得ta破涕为笑', target: '天生创意造梦师' }
+                ]
+            },
+            {
+                id: 4,
+                question: '团队一起合作完成一个新项目，我最享受承担哪个环节',
+                options: [
+                    { key: 'A', text: '前期头脑风暴，负责提出最天马行空的核心创意点子', target: '天生创意造梦师' },
+                    { key: 'B', text: '把控整体进度表、预算和细节分工，确保万无一失', target: '稳健秩序守护者' },
+                    { key: 'C', text: '对外沟通谈判、拉赞助和上台做最终的精彩路演汇报', target: '高能社交控场王' },
+                    { key: 'D', text: '攻克最难的技术卡点或搭建自动化工具，让效率翻倍', target: '硬核技术极客魂' }
+                ]
+            },
+            {
+                id: 5,
+                question: '在日常工作或学习中，哪种状态最容易让我感到崩溃内耗',
+                options: [
+                    { key: 'A', text: '每天重复一模一样的枯燥流程，不准有任何新鲜发挥', target: '天生创意造梦师' },
+                    { key: 'B', text: '计划朝令夕改、没有任何规则章法，天天在救火收拾烂摊子', target: '稳健秩序守护者' },
+                    { key: 'C', text: '一个人关在小黑屋里对着冷冰冰的数据，一整天不跟人说话', target: '高能社交控场王' },
+                    { key: 'D', text: '被迫做一些粗糙敷衍的半成品，连自己审美那一关都过不去', target: '精微美学匠人派' }
+                ]
+            },
+            {
+                id: 6,
+                question: '逛街经过一家生意特别火爆的新店，我脑子里第一反应是',
+                options: [
+                    { key: 'A', text: '这家的门头配色、灯光和包装设计也太有质感了吧', target: '精微美学匠人派' },
+                    { key: 'B', text: '算一下它的人流量、客单价和翻台率，这店肯定赚翻了', target: '敏锐商业操盘手' },
+                    { key: 'C', text: '拍照发条小红书，这标题和话题绝对能自带流量火一波', target: '内容爆款制造机' },
+                    { key: 'D', text: '店员的服务话术好暖心，让人一进门就觉得特别放松舒服', target: '共情治愈摆渡人' }
+                ]
+            },
+            {
+                id: 7,
+                question: '如果手头突然多了一笔5万元的闲钱，我最想拿它来干嘛',
+                options: [
+                    { key: 'A', text: '拿去做小成本商业试水，看看能不能钱生钱翻个倍', target: '敏锐商业操盘手' },
+                    { key: 'B', text: '买一张机票去一直向往的远方，体验完全不同的人生切片', target: '自由跨界探索家' },
+                    { key: 'C', text: '升级一套顶级电脑装备或专业工具，把生产力拉到满格', target: '硬核技术极客魂' },
+                    { key: 'D', text: '按比例做好稳健储蓄和健康保障规划，心里有底最安心', target: '稳健秩序守护者' }
+                ]
+            },
+            {
+                id: 8,
+                question: '和一群不太熟悉的人一起吃饭，我通常会处于什么位置',
+                options: [
+                    { key: 'A', text: '主动破冰暖场，确保桌上的每个人都能插上话、不被冷落', target: '高能社交控场王' },
+                    { key: 'B', text: '默默照顾旁边比较内向的人，贴心帮大家递纸巾或倒茶', target: '共情治愈摆渡人' },
+                    { key: 'C', text: '安静观察每个人的发言逻辑，心里很快摸清大家的性格底牌', target: '理性破局策略家' },
+                    { key: 'D', text: '抛出几个奇奇怪怪的冷知识或话题，瞬间把大家逗乐', target: '内容爆款制造机' }
+                ]
+            },
+            {
+                id: 9,
+                question: '买了一件需要自己动手组装或调试的新设备，我会',
+                options: [
+                    { key: 'A', text: '不看说明书直接凭直觉摸索研究，搞定原理特别有成就感', target: '硬核技术极客魂' },
+                    { key: 'B', text: '先把所有零件按大小分类摆整齐，严格对照图纸一步步来', target: '稳健秩序守护者' },
+                    { key: 'C', text: '边装边琢磨怎么给它贴纸改造，让它变得独一无二更好看', target: '精微美学匠人派' },
+                    { key: 'D', text: '随手拍个开箱vlog记录过程，剪辑出来发给朋友看', target: '内容爆款制造机' }
+                ]
+            },
+            {
+                id: 10,
+                question: '假如拥有一项职场超能力，我最希望自己具备哪一种',
+                options: [
+                    { key: 'A', text: '一眼看穿任何复杂局势背后的底层规律与破局关键', target: '理性破局策略家' },
+                    { key: 'B', text: '大脑随时涌现出让人拍案叫绝的绝妙创意与艺术灵感', target: '天生创意造梦师' },
+                    { key: 'C', text: '敏锐捕捉下一个赚钱风口，把任何资源都盘活变现', target: '敏锐商业操盘手' },
+                    { key: 'D', text: '掌握全网最硬核的前沿技术，走到哪都是不可替代的大神', target: '硬核技术极客魂' }
+                ]
+            },
+            {
+                id: 11,
+                question: '写一份报告或发一条重要朋友圈时，我最在意的是',
+                options: [
+                    { key: 'A', text: '论点是否严密、数据是否准确，逻辑必须无懈可击', target: '理性破局策略家' },
+                    { key: 'B', text: '排版是否干净舒服、配图色调是否统一，不能有一点瑕疵', target: '精微美学匠人派' },
+                    { key: 'C', text: '开头第一句话够不够抓人眼球，能不能让人一口气读完', target: '内容爆款制造机' },
+                    { key: 'D', text: '文字里传递出的温度，能不能让看到的人觉得被鼓励到', target: '共情治愈摆渡人' }
+                ]
+            },
+            {
+                id: 12,
+                question: '如果让我选一种理想的工作节奏，我最向往的是',
+                options: [
+                    { key: 'A', text: '不坐班、不打卡，在咖啡馆或海边随时切换工作与生活', target: '自由跨界探索家' },
+                    { key: 'B', text: '边界清晰、规则明确，按计划高效完成任务后准点下班', target: '稳健秩序守护者' },
+                    { key: 'C', text: '充满挑战与高回报激励，每拿下一场硬仗都肾上腺素飙升', target: '敏锐商业操盘手' },
+                    { key: 'D', text: '不被琐碎杂事打扰，能一整天沉浸在自己的专业作品打磨里', target: '硬核技术极客魂' }
+                ]
+            },
+            {
+                id: 13,
+                question: '平时和别人聊天时，大家夸我最多的一句话通常是',
+                options: [
+                    { key: 'A', text: '「你脑洞也太大了吧，这种点子都能被你想出来！」', target: '天生创意造梦师' },
+                    { key: 'B', text: '「跟你聊完心里舒服多了，感觉你特别懂我。」', target: '共情治愈摆渡人' },
+                    { key: 'C', text: '「你办事也太靠谱了，交给你我一百个放心。」', target: '稳健秩序守护者' },
+                    { key: 'D', text: '「你这眼光和品味绝了，挑的东西每次都这么高级。」', target: '精微美学匠人派' }
+                ]
+            },
+            {
+                id: 14,
+                question: '面对一个从来没接触过的全新领域，我的第一反应是',
+                options: [
+                    { key: 'A', text: '太刺激了！马上上手体验，把不同领域的玩法混搭起来', target: '自由跨界探索家' },
+                    { key: 'B', text: '先去研究它的底层原理和工具链，把核心技能树点亮', target: '硬核技术极客魂' },
+                    { key: 'C', text: '快速调研市场规模和变现路径，看看这里面有没有大机会', target: '敏锐商业操盘手' },
+                    { key: 'D', text: '直接找圈内厉害的前辈聊一聊，通过人脉快速摸清门道', target: '高能社交控场王' }
+                ]
+            },
+            {
+                id: 15,
+                question: '看一部电影或追一部剧时，我最容易被哪个部分吸引',
+                options: [
+                    { key: 'A', text: '天马行空的奇幻设定、视觉特效和意想不到的剧情反转', target: '天生创意造梦师' },
+                    { key: 'B', text: '主角之间细腻的情感流动，以及直击灵魂的人性刻画', target: '共情治愈摆渡人' },
+                    { key: 'C', text: '严丝合缝的推理细节、高智商博弈和伏笔回收的爽感', target: '理性破局策略家' },
+                    { key: 'D', text: '电影级别的构图光影、服化道美学和原声配乐质感', target: '精微美学匠人派' }
+                ]
+            },
+            {
+                id: 16,
+                question: '假如要策划一场朋友聚会，我最擅长扮演什么角色',
+                options: [
+                    { key: 'A', text: '现场气氛组总导演，把每个人的情绪都调动到最高点', target: '高能社交控场王' },
+                    { key: 'B', text: '提前订好餐厅、算好AA账单、确认好每个人忌口的管家', target: '稳健秩序守护者' },
+                    { key: 'C', text: '发掘小众宝藏玩法，带大家去体验从来没玩过的新奇项目', target: '自由跨界探索家' },
+                    { key: 'D', text: '全程负责抓拍绝美花絮，聚会结束立刻剪出大片发群里', target: '内容爆款制造机' }
+                ]
+            },
+            {
+                id: 17,
+                question: '遇到电脑报错或者软件卡顿时，我通常会怎么做',
+                options: [
+                    { key: 'A', text: '自己查日志、搜代码报错信息，非要亲手把它修复不可', target: '硬核技术极客魂' },
+                    { key: 'B', text: '冷静排查是网络、内存还是系统问题，一步步缩小范围', target: '理性破局策略家' },
+                    { key: 'C', text: '干脆趁机合上电脑去喝杯咖啡，换个环境转换一下心情', target: '自由跨界探索家' },
+                    { key: 'D', text: '发条幽默吐槽动态到朋友圈，顺便评论区摇个大神来救场', target: '内容爆款制造机' }
+                ]
+            },
+            {
+                id: 18,
+                question: '在挑选一件每天都要用的随身物品时，我最看重',
+                options: [
+                    { key: 'A', text: '设计感与材质细节，摸起来、看起来都得顺眼舒服', target: '精微美学匠人派' },
+                    { key: 'B', text: '硬核性能参数与黑科技配置，必须是同价位里的实力派', target: '硬核技术极客魂' },
+                    { key: 'C', text: '品牌背后的故事和理念，能代表我独特的个人态度', target: '天生创意造梦师' },
+                    { key: 'D', text: '性价比与保值率，花出去的每一分钱都要物超所值', target: '敏锐商业操盘手' }
+                ]
+            },
+            {
+                id: 19,
+                question: '如果有一天我决定做自己的个人账号，最可能火起来的方向是',
+                options: [
+                    { key: 'A', text: '树洞倾听与情感心理陪伴，成为粉丝深夜最信任的避风港', target: '共情治愈摆渡人' },
+                    { key: 'B', text: '犀利有趣的社会观察与热点吐槽，金句频出让人疯狂转发', target: '内容爆款制造机' },
+                    { key: 'C', text: '全球旅居与多面斜杠生活记录，带着大家一起体验自由人生', target: '自由跨界探索家' },
+                    { key: 'D', text: '商业思维拆解与副业搞钱干货，手把手带粉丝提升认知', target: '敏锐商业操盘手' }
+                ]
+            },
+            {
+                id: 20,
+                question: '闭上眼睛想象五年后最理想的工作画面，我看到的是',
+                options: [
+                    { key: 'A', text: '在充满阳光的个人工作室里，专注打磨着一件件满意的作品', target: '精微美学匠人派' },
+                    { key: 'B', text: '坐在明亮的会议室或高空落地窗前，冷静主导着核心战略决策', target: '理性破局策略家' },
+                    { key: 'C', text: '背着电脑和相机走在世界各地的街头，不被任何工位束缚', target: '自由跨界探索家' },
+                    { key: 'D', text: '带领着一支有温度的团队，用专业与善意帮助更多人变好', target: '共情治愈摆渡人' }
+                ]
+            }
+        ];
+
+        // 并列兜底优先级顺序（覆盖全部10种天命职业）
+        const TIE_FALLBACK_ORDER = [
+            '理性破局策略家',
+            '天生创意造梦师',
+            '敏锐商业操盘手',
+            '高能社交控场王',
+            '共情治愈摆渡人',
+            '自由跨界探索家',
+            '精微美学匠人派',
+            '硬核技术极客魂',
+            '稳健秩序守护者',
+            '内容爆款制造机'
+        ];
+
+        // 全局答题状态变量
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(QUESTIONS_DATA.length).fill(null);
+        let currentResultKey = '';
+        let isTransitioning = false;
+        let toastTimer = null;
+
+        /**
+         * 切换页面视图（开始页 / 答题页 / 结果页）
+         */
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            const target = document.getElementById(viewId);
+            if (target) {
+                target.classList.add('active');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /**
+         * 开始测试：重置答题进度并进入第1题
+         */
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            userAnswers = new Array(QUESTIONS_DATA.length).fill(null);
+            isTransitioning = false;
+            renderQuestion(0);
+            switchView('view-quiz');
+        }
+
+        /**
+         * 重新测试
+         */
+        function restartQuiz() {
+            startQuiz();
+        }
+
+        /**
+         * 渲染指定索引的题目与4个选项
+         */
+        function renderQuestion(index) {
+            const qData = QUESTIONS_DATA[index];
+            if (!qData) return;
+
+            const total = QUESTIONS_DATA.length;
+            document.getElementById('question-counter').textContent = `${index + 1} / ${total}`;
+
+            const progressPercent = Math.round(((index + 1) / total) * 100);
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            // 动态鼓励提示语
+            const hintEl = document.getElementById('progress-hint');
+            if (index === total - 1) {
+                hintEl.textContent = '最后一题啦，马上揭晓天赋';
+            } else if (index >= 14) {
+                hintEl.textContent = '就快测完了，保持第一直觉';
+            } else if (index >= 9) {
+                hintEl.textContent = '进度过半，天命赛道越来越清晰了';
+            } else {
+                hintEl.textContent = '别想太复杂，按真实反应选';
+            }
+
+            // 控制上一题按钮显示
+            const prevBtn = document.getElementById('prev-btn');
+            if (index > 0) {
+                prevBtn.classList.remove('invisible');
+            } else {
+                prevBtn.classList.add('invisible');
+            }
+
+            // 注入题干
+            document.getElementById('question-text').textContent = qData.question;
+
+            // 注入选项
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            qData.options.forEach((opt, optIdx) => {
+                const isSelected = userAnswers[index] === optIdx;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `option-btn w-full text-left p-4 rounded-2xl border flex items-start gap-3.5 ${
+                    isSelected
+                        ? 'bg-[#2C2A29] text-white border-[#2C2A29] shadow-sm'
+                        : 'bg-[#F7F6F2]/80 hover:bg-[#F2EFE9] text-[#2C2A29] border-stone-200/70'
+                }`;
+
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${
+                        isSelected
+                            ? 'bg-white text-[#2C2A29]'
+                            : 'bg-white text-[#7A7571] border border-stone-200/80'
+                    }">${opt.key}</span>
+                    <span class="text-[15px] leading-relaxed font-medium">${opt.text}</span>
+                `;
+
+                btn.onclick = () => selectOption(optIdx);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        /**
+         * 选择某个选项后记录答案并自动跳转下一题或计算结果
+         */
+        function selectOption(optIdx) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            userAnswers[currentQuestionIndex] = optIdx;
+            renderQuestion(currentQuestionIndex);
+
+            setTimeout(() => {
+                if (currentQuestionIndex < QUESTIONS_DATA.length - 1) {
+                    currentQuestionIndex++;
+                    renderQuestion(currentQuestionIndex);
+                } else {
+                    const resultKey = calculateResult();
+                    showResult(resultKey);
+                }
+                isTransitioning = false;
+            }, 220);
+        }
+
+        /**
+         * 返回上一题
+         */
+        function prevQuestion() {
+            if (isTransitioning || currentQuestionIndex <= 0) return;
+            currentQuestionIndex--;
+            renderQuestion(currentQuestionIndex);
+        }
+
+        /**
+         * 严格按规则计算最终职业天赋结果（20题 · 10种全覆盖版）
+         */
+        function calculateResult() {
+            const scores = {
+                '天生创意造梦师': 0,
+                '理性破局策略家': 0,
+                '高能社交控场王': 0,
+                '共情治愈摆渡人': 0,
+                '自由跨界探索家': 0,
+                '精微美学匠人派': 0,
+                '敏锐商业操盘手': 0,
+                '硬核技术极客魂': 0,
+                '稳健秩序守护者': 0,
+                '内容爆款制造机': 0
+            };
+
+            // 累计20题得分
+            userAnswers.forEach((optIdx, qIdx) => {
+                if (optIdx !== null && QUESTIONS_DATA[qIdx]) {
+                    const target = QUESTIONS_DATA[qIdx].options[optIdx].target;
+                    scores[target] = (scores[target] || 0) + 1;
+                }
+            });
+
+            // 找出最高分
+            const maxScore = Math.max(...Object.values(scores));
+            const tiedCandidates = Object.keys(scores).filter(key => scores[key] === maxScore);
+
+            // 若无并列，直接返回最高分
+            if (tiedCandidates.length === 1) {
+                return tiedCandidates[0];
+            }
+
+            // 兜底规则 1：优先看第20题（索引19）所选结果是否在并列中
+            const q20OptIdx = userAnswers[19];
+            if (q20OptIdx !== null) {
+                const q20Target = QUESTIONS_DATA[19].options[q20OptIdx].target;
+                if (tiedCandidates.includes(q20Target)) {
+                    return q20Target;
+                }
+            }
+
+            // 兜底规则 2：其次看第10题（索引9）所选结果是否在并列中
+            const q10OptIdx = userAnswers[9];
+            if (q10OptIdx !== null) {
+                const q10Target = QUESTIONS_DATA[9].options[q10OptIdx].target;
+                if (tiedCandidates.includes(q10Target)) {
+                    return q10Target;
+                }
+            }
+
+            // 兜底规则 3：按指定顺序取靠前者
+            for (const fallbackKey of TIE_FALLBACK_ORDER) {
+                if (tiedCandidates.includes(fallbackKey)) {
+                    return fallbackKey;
+                }
+            }
+
+            return tiedCandidates[0];
+        }
+
+        /**
+         * 渲染结果页面（含专属定制 SVG 插画 + 海报卡片 + 三大深度分析模块）
+         */
+        function showResult(resultKey) {
+            currentResultKey = resultKey;
+            const data = RESULTS_DATA[resultKey];
+            if (!data) return;
+
+            // 1. 设置 3:4 备忘录卡片背景色与专属 SVG 意象插画
+            const memoCard = document.getElementById('result-memo-card');
+            memoCard.style.backgroundColor = data.bgColor;
+
+            const illusBox = document.getElementById('res-illustration-box');
+            illusBox.innerHTML = SVG_PORTRAITS[resultKey] || '';
+
+            // 2. 填充海报核心文案与3个核心特质标签
+            document.getElementById('res-title').textContent = data.name;
+            document.getElementById('res-verdict').textContent = data.verdict;
+            document.getElementById('res-quote').textContent = data.quote;
+
+            const keywordsContainer = document.getElementById('res-keywords');
+            keywordsContainer.innerHTML = data.keywords
+                .map(kw => `<span class="px-2.5 py-0.5 rounded-full bg-white/75 text-[#44403C] text-[11px] sm:text-xs font-medium border border-black/5"># ${kw}</span>`)
+                .join('');
+
+            // 3. 填充下半部分三大深度分析模块
+            document.getElementById('res-self-analysis').textContent = data.selfAnalysis;
+            document.getElementById('res-match-logic').textContent = data.matchLogic;
+
+            const appearanceContainer = document.getElementById('res-appearance-details');
+            appearanceContainer.innerHTML = data.appearanceDetails
+                .map(item => {
+                    const parts = item.split('：');
+                    if (parts.length === 2) {
+                        return `<p><strong class="text-[#2C2A29] font-semibold">${parts[0]}：</strong>${parts[1]}</p>`;
+                    }
+                    return `<p>${item}</p>`;
+                })
+                .join('');
+
+            // 4. 填充 @谁一起测 互动引导
+            document.getElementById('res-tag-prompt').textContent = data.tagPrompt;
+
+            switchView('view-result');
+        }
+
+        /**
+         * 使用 HTML5 Canvas 将专属 SVG 插画与海报文字精准绘制导出为高清 3:4 PNG 图片
+         */
+        function downloadResultImage() {
+            try {
+                const data = RESULTS_DATA[currentResultKey];
+                const svgString = SVG_PORTRAITS[currentResultKey];
+                if (!data || !svgString) return;
+
+                const canvas = document.createElement('canvas');
+                const width = 900;
+                const height = 1200; // 严格 3:4 比例
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+
+                const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
+                const img = new Image();
+
+                img.onload = function () {
+                    // 1. 低饱和纯色底
+                    ctx.fillStyle = data.bgColor;
+                    ctx.fillRect(0, 0, width, height);
+
+                    // 2. 绘制顶部圆角矩形底框与专属 SVG 插画
+                    const boxSize = 290;
+                    const boxX = (width - boxSize) / 2;
+                    const boxY = 120;
+                    const boxRadius = 64;
+
+                    ctx.save();
+                    drawRoundRect(ctx, boxX - 10, boxY - 10, boxSize + 20, boxSize + 20, boxRadius + 6);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                    ctx.fill();
+                    ctx.restore();
+
+                    ctx.save();
+                    drawRoundRect(ctx, boxX, boxY, boxSize, boxSize, boxRadius);
+                    ctx.clip();
+                    ctx.drawImage(img, boxX, boxY, boxSize, boxSize);
+                    ctx.restore();
+
+                    URL.revokeObjectURL(url);
+
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    // 3. 绘制职业称号（大号加粗）
+                    ctx.fillStyle = '#2C2A29';
+                    ctx.font = 'bold 58px "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
+                    ctx.fillText(data.name, width / 2, 495);
+
+                    // 4. 绘制3个核心天赋胶囊标签
+                    ctx.font = '500 24px "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
+                    const tagGap = 18;
+                    const tagPadX = 22;
+                    const tagHeight = 44;
+                    const tagWidths = data.keywords.map(kw => ctx.measureText(`# ${kw}`).width + tagPadX * 2);
+                    const totalTagsWidth = tagWidths.reduce((a, b) => a + b, 0) + tagGap * (tagWidths.length - 1);
+                    let startX = (width - totalTagsWidth) / 2;
+                    const tagY = 570;
+
+                    data.keywords.forEach((kw, idx) => {
+                        const w = tagWidths[idx];
+                        drawRoundRect(ctx, startX, tagY - tagHeight / 2, w, tagHeight, 22);
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+                        ctx.fill();
+                        ctx.fillStyle = '#44403C';
+                        ctx.fillText(`# ${kw}`, startX + w / 2, tagY);
+                        startX += w + tagGap;
+                    });
+
+                    // 5. 绘制灵魂判词（中号常规字，自动换行）
+                    ctx.fillStyle = '#44403C';
+                    ctx.font = '500 32px "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
+                    const verdictLines = wrapText(ctx, data.verdict, width - 170);
+                    let currentY = 675;
+                    verdictLines.forEach(line => {
+                        ctx.fillText(line, width / 2, currentY);
+                        currentY += 50;
+                    });
+
+                    // 6. 极简短分隔线
+                    currentY += 25;
+                    ctx.fillStyle = 'rgba(44, 42, 41, 0.16)';
+                    ctx.fillRect((width - 72) / 2, currentY, 72, 3);
+
+                    // 7. 绘制朋友圈金句
+                    currentY += 58;
+                    ctx.fillStyle = '#57534E';
+                    ctx.font = '500 28px "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
+                    const quoteLines = wrapText(ctx, data.quote, width - 190);
+                    quoteLines.forEach(line => {
+                        ctx.fillText(line, width / 2, currentY);
+                        currentY += 46;
+                    });
+
+                    // 8. 底部极小水印：图个乐
+                    ctx.fillStyle = 'rgba(44, 42, 41, 0.35)';
+                    ctx.font = '400 22px "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
+                    ctx.fillText('图个乐', width / 2, height - 56);
+
+                    // 9. 生成图片预览弹窗并尝试触发下载
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const previewImg = document.getElementById('exported-img-preview');
+                    if (previewImg) {
+                        previewImg.src = dataUrl;
+                    }
+                    const imageModal = document.getElementById('image-modal');
+                    if (imageModal) {
+                        imageModal.classList.remove('hidden');
+                        imageModal.classList.add('flex');
+                    }
+
+                    const link = document.createElement('a');
+                    link.download = `${data.name}.png`;
+                    link.href = dataUrl;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    showToast('海报已生成，长按图片也可保存哦');
+                };
+
+                img.onerror = function () {
+                    URL.revokeObjectURL(url);
+                    showToast('海报生成失败，请截图保存结果页');
+                };
+
+                img.src = url;
+            } catch (e) {
+                showToast('生成图片遇到一点小问题，可直接截图保存');
+            }
+        }
+
+        /**
+         * Canvas 圆角矩形辅助绘制
+         */
+        function drawRoundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + width, y, x + width, y + height, radius);
+            ctx.arcTo(x + width, y + height, x, y + height, radius);
+            ctx.arcTo(x, y + height, x, y, radius);
+            ctx.arcTo(x, y, x + width, y, radius);
+            ctx.closePath();
+        }
+
+        /**
+         * Canvas 中文自动换行辅助函数
+         */
+        function wrapText(ctx, text, maxWidth) {
+            const lines = [];
+            let currentLine = '';
+            for (let i = 0; i < text.length; i++) {
+                const testLine = currentLine + text[i];
+                if (ctx.measureText(testLine).width > maxWidth && currentLine.length > 0) {
+                    lines.push(currentLine);
+                    currentLine = text[i];
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            return lines;
+        }
+
+        /**
+         * 复制深度分析结果文案到剪贴板（兼容 iFrame 环境）
+         */
+        function copyResultText() {
+            const data = RESULTS_DATA[currentResultKey];
+            if (!data) return;
+
+            const shareText = [
+                `测测你天生吃哪碗饭，我的结果是【${data.name}】（${data.keywords.join(' / ')}）！`,
+                `✨ 灵魂判词：${data.verdict}`,
+                `🎯 ${data.appearanceDetails[0]}`,
+                `💼 职场人格底色：${data.selfAnalysis}`,
+                `🚀 为什么适合：${data.matchLogic}`,
+                `💬 ${data.quote}`,
+                `${data.tagPrompt}`
+            ].join('\n\n');
+
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = shareText;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                if (successful) {
+                    showToast('已复制深度分析文案，快去分享吧');
+                } else {
+                    showToast('复制成功，去粘贴分享吧');
+                }
+            } catch (e) {
+                showToast('长按上方文字即可复制分享哦');
+            }
+        }
+
+        /**
+         * 打开/关闭全部10种天命职业图鉴弹窗
+         */
+        function openGalleryModal() {
+            const listEl = document.getElementById('gallery-list');
+            listEl.innerHTML = '';
+
+            Object.values(RESULTS_DATA).forEach(item => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.style.backgroundColor = item.bgColor;
+                card.className = 'w-full text-left p-4 rounded-2xl border border-black/5 transition transform active:scale-[0.98] flex items-center gap-3.5';
+                card.innerHTML = `
+                    <div class="w-14 h-14 rounded-2xl bg-white/80 shrink-0 overflow-hidden p-0.5 border border-white">
+                        ${SVG_PORTRAITS[item.name] || ''}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="font-bold text-[15px] text-[#2C2A29] truncate">${item.name}</span>
+                            <span class="text-xs text-[#7A7571] shrink-0">查看 →</span>
+                        </div>
+                        <p class="text-xs text-[#57534E] leading-relaxed line-clamp-2">${item.verdict}</p>
+                    </div>
+                `;
+                card.onclick = () => {
+                    closeGalleryModal();
+                    showResult(item.name);
+                };
+                listEl.appendChild(card);
+            });
+
+            const modal = document.getElementById('gallery-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeGalleryModal() {
+            const modal = document.getElementById('gallery-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('image-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        /**
+         * 轻量 Toast 提示
+         */
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            if (!toast || !msgEl) return;
+
+            msgEl.textContent = msg;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 2400);
+        }
+    </script>
+</body>
+</html>
